@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}QuoteForge{% endblock %} - David's Custom Upholstery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        workshop: {
+                            900: '#0f0f0f',
+                            800: '#1a1a1a',
+                            700: '#2a2a2a',
+                            600: '#3a3a3a',
+                            500: '#6b6b6b',
+                            400: '#8b8b8b',
+                            300: '#ababab',
+                        },
+                        leather: {
+                            600: '#8B4513',
+                            500: '#A0522D',
+                            400: '#CD853F',
+                        },
+                        brass: {
+                            500: '#D4AF37',
+                            400: '#F4CF47',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .font-display { font-family: 'Bebas Neue', sans-serif; }
+        .gradient-border { background: linear-gradient(135deg, #D4AF37 0%, #8B4513 100%); }
+    </style>
+</head>
+<body class="bg-workshop-900 text-white min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-workshop-800 border-b border-workshop-700 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center space-x-8">
+                    <a href="{{ url_for('index') }}" class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-lg gradient-border flex items-center justify-center">
+                            <span class="text-workshop-900 font-bold text-xl">Q</span>
+                        </div>
+                        <span class="font-display text-2xl tracking-wider text-brass-400">QUOTEFORGE</span>
+                    </a>
+                    <div class="hidden md:flex items-center space-x-1">
+                        <a href="{{ url_for('index') }}" class="px-4 py-2 rounded-lg text-workshop-300 hover:text-white hover:bg-workshop-700 transition {% if request.endpoint == 'index' %}bg-workshop-700 text-white{% endif %}">Dashboard</a>
+                        <a href="{{ url_for('jobs') }}" class="px-4 py-2 rounded-lg text-workshop-300 hover:text-white hover:bg-workshop-700 transition {% if request.endpoint in ['jobs', 'job_new', 'job_detail', 'job_edit'] %}bg-workshop-700 text-white{% endif %}">Jobs</a>
+                        <a href="{{ url_for('customers') }}" class="px-4 py-2 rounded-lg text-workshop-300 hover:text-white hover:bg-workshop-700 transition {% if request.endpoint in ['customers', 'customer_detail'] %}bg-workshop-700 text-white{% endif %}">Customers</a>
+                        <a href="{{ url_for('reports') }}" class="px-4 py-2 rounded-lg text-workshop-300 hover:text-white hover:bg-workshop-700 transition {% if request.endpoint == 'reports' %}bg-workshop-700 text-white{% endif %}">Reports</a>
+                        <a href="{{ url_for('backup_page') }}" class="px-4 py-2 rounded-lg text-workshop-300 hover:text-white hover:bg-workshop-700 transition {% if request.endpoint == 'backup_page' %}bg-workshop-700 text-white{% endif %}">Backup</a>
+                    </div>
+                </div>
+                <a href="{{ url_for('job_new') }}" class="hidden md:flex items-center space-x-2 px-4 py-2 bg-leather-500 hover:bg-leather-400 rounded-lg transition font-medium">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    <span>New Job</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="max-w-7xl mx-auto px-4 mt-4">
+        {% for category, message in messages %}
+        <div class="mb-2 p-4 rounded-lg {% if category == 'success' %}bg-green-900/50 border border-green-700 text-green-300{% elif category == 'error' %}bg-red-900/50 border border-red-700 text-red-300{% elif category == 'warning' %}bg-yellow-900/50 border border-yellow-700 text-yellow-300{% else %}bg-blue-900/50 border border-blue-700 text-blue-300{% endif %}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-workshop-800 border-t border-workshop-700 mt-auto py-6">
+        <div class="max-w-7xl mx-auto px-4 text-center text-workshop-500 text-sm">
+            <p>QuoteForge &copy; 2025 - David's Custom Upholstery</p>
+        </div>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>
+

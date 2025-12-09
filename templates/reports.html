@@ -1,0 +1,473 @@
+{% extends 'base.html' %}
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="font-display text-4xl tracking-wider text-brass-400">FINANCIAL REPORTS</h1>
+    <p class="text-workshop-400 mt-1">Financial analysis by Australian Financial Year (July-June)</p>
+</div>
+
+<!-- Filters -->
+<div class="bg-workshop-800 rounded-xl p-4 border border-workshop-700 mb-6">
+    <form method="GET" class="flex flex-wrap items-end gap-4">
+        <div>
+            <label class="text-workshop-500 text-xs uppercase tracking-wider">Financial Year</label>
+            <select name="fy" class="block mt-1 bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2 text-white focus:border-leather-500 outline-none">
+                {% for fy in available_fys %}
+                <option value="{{ fy }}" {% if selected_fy == fy %}selected{% endif %}>{{ fy|fy_label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label class="text-workshop-500 text-xs uppercase tracking-wider">Quarter</label>
+            <select name="quarter" class="block mt-1 bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2 text-white focus:border-leather-500 outline-none">
+                <option value="">Full Year</option>
+                <option value="Q1" {% if quarter_filter == 'Q1' %}selected{% endif %}>Q1 (Jul-Sep)</option>
+                <option value="Q2" {% if quarter_filter == 'Q2' %}selected{% endif %}>Q2 (Oct-Dec)</option>
+                <option value="Q3" {% if quarter_filter == 'Q3' %}selected{% endif %}>Q3 (Jan-Mar)</option>
+                <option value="Q4" {% if quarter_filter == 'Q4' %}selected{% endif %}>Q4 (Apr-Jun)</option>
+            </select>
+        </div>
+        <div>
+            <label class="text-workshop-500 text-xs uppercase tracking-wider">Specific Month</label>
+            <input type="month" name="month" value="{{ month_filter }}"
+                   class="block mt-1 bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2 text-white focus:border-leather-500 outline-none">
+        </div>
+        <button type="submit" class="px-4 py-2 bg-leather-500 hover:bg-leather-400 rounded-lg transition">Apply Filter</button>
+        {% if quarter_filter or month_filter %}
+        <a href="{{ url_for('reports', fy=selected_fy) }}" class="px-4 py-2 text-workshop-400 hover:text-white transition">Clear Filters</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Period Summary -->
+<div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700 mb-6">
+    <h2 class="font-display text-xl tracking-wider text-brass-400 mb-2">
+        {{ selected_fy|fy_label }}{% if quarter_filter %} {{ quarter_filter }}{% endif %}{% if month_filter %} - {{ month_filter }}{% endif %}
+    </h2>
+    <p class="text-workshop-500 text-sm mb-4">{{ date_start|ausdate }} to {{ date_end|ausdate }}</p>
+    
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+        <div>
+            <p class="text-workshop-400 text-sm uppercase tracking-wider">Revenue (ex GST)</p>
+            <p class="text-3xl font-bold text-brass-400 mt-1">{{ total_revenue|currency }}</p>
+        </div>
+        <div>
+            <p class="text-workshop-400 text-sm uppercase tracking-wider">GST Collected</p>
+            <p class="text-3xl font-bold text-blue-400 mt-1">{{ total_gst|currency }}</p>
+        </div>
+        <div>
+            <p class="text-workshop-400 text-sm uppercase tracking-wider">Total COGS</p>
+            <p class="text-3xl font-bold text-red-400 mt-1">{{ total_cogs|currency }}</p>
+        </div>
+        <div>
+            <p class="text-workshop-400 text-sm uppercase tracking-wider">Gross Profit</p>
+            <p class="text-3xl font-bold text-green-400 mt-1">{{ gross_profit|currency }}</p>
+        </div>
+    </div>
+    
+    <div class="mt-4 pt-4 border-t border-workshop-700">
+        <div class="flex items-center justify-between text-sm">
+            <span class="text-workshop-400">Revenue Inc GST:</span>
+            <span class="text-workshop-300">{{ (total_revenue * 1.1)|currency }}</span>
+        </div>
+        {% if total_revenue > 0 %}
+        <div class="flex items-center justify-between text-sm mt-1">
+            <span class="text-workshop-400">Gross Margin:</span>
+            <span class="text-workshop-300">{{ ((gross_profit / total_revenue) * 100)|round(1) }}%</span>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quarterly Summary -->
+<div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700 mb-6">
+    <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">QUARTERLY BREAKDOWN - {{ selected_fy|fy_label }}</h2>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {% for q in quarterly_data %}
+        <a href="{{ url_for('reports', fy=selected_fy, quarter=q.quarter) }}" 
+           class="bg-workshop-700 rounded-lg p-4 hover:bg-workshop-600 transition {% if quarter_filter == q.quarter %}ring-2 ring-brass-500{% endif %}">
+            <div class="flex items-center justify-between mb-2">
+                <span class="font-display text-lg text-brass-400">{{ q.quarter }}</span>
+                <span class="text-workshop-500 text-sm">{{ q.period }}</span>
+            </div>
+            <p class="text-2xl font-bold text-white">{{ q.revenue|currency }}</p>
+            <p class="text-sm text-workshop-400 mt-1">+{{ q.gst|currency }} GST</p>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Monthly Revenue Trend -->
+    <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+        <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">MONTHLY REVENUE TREND</h2>
+        <div class="h-48">
+            <canvas id="monthlyRevenueChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Revenue vs Profit vs COGS -->
+    <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+        <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">REVENUE vs PROFIT vs COGS</h2>
+        <div class="h-48">
+            <canvas id="revenueProfitChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- Quarterly Comparison -->
+    <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+        <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">QUARTERLY COMPARISON</h2>
+        <div class="h-48">
+            <canvas id="quarterlyChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Revenue by Status -->
+    <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+        <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">REVENUE BY STATUS</h2>
+        <div class="h-48">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+</div>
+
+{% if year_comparison|length > 1 %}
+<!-- Year-over-Year Comparison -->
+<div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700 mb-6">
+    <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">YEAR-OVER-YEAR COMPARISON</h2>
+    <div class="h-48">
+        <canvas id="yearComparisonChart"></canvas>
+    </div>
+</div>
+{% endif %}
+
+<!-- Monthly Breakdown Tables -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+        <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">MONTHLY REVENUE</h2>
+        <div class="space-y-3">
+            {% for month in monthly_data %}
+            <div class="flex items-center justify-between py-2 border-b border-workshop-700 last:border-0">
+                <span class="text-workshop-300">{{ month.month }}</span>
+                <div class="text-right">
+                    <span class="text-white font-medium">{{ month.revenue|currency }}</span>
+                    <span class="text-workshop-500 text-sm ml-2">(+{{ month.gst|currency }} GST)</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+        <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">MONTHLY PROFIT</h2>
+        <div class="space-y-3">
+            {% for month in monthly_data %}
+            <div class="flex items-center justify-between py-2 border-b border-workshop-700 last:border-0">
+                <span class="text-workshop-300">{{ month.month }}</span>
+                <div class="text-right">
+                    <span class="text-green-400 font-medium">{{ month.profit|currency }}</span>
+                    <span class="text-red-400 text-sm ml-2">(COGS: {{ month.cogs|currency }})</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Top Customers -->
+<div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+    <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">TOP CUSTOMERS ({{ date_start|ausdate }} - {{ date_end|ausdate }})</h2>
+    {% if top_customers %}
+    <div class="overflow-x-auto">
+        <table class="w-full">
+            <thead>
+                <tr class="text-workshop-400 text-sm border-b border-workshop-700">
+                    <th class="text-left py-3">#</th>
+                    <th class="text-left py-3">Customer</th>
+                    <th class="text-left py-3">Phone</th>
+                    <th class="text-right py-3">Revenue (ex GST)</th>
+                    <th class="text-right py-3">Inc GST</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer, total in top_customers %}
+                <tr class="border-b border-workshop-700/50 hover:bg-workshop-700/30 transition cursor-pointer" onclick="window.location='{{ url_for('customer_detail', customer_id=customer.id) }}'">
+                    <td class="py-3 text-workshop-500">{{ loop.index }}</td>
+                    <td class="py-3 font-medium">{{ customer.name }}</td>
+                    <td class="py-3 text-workshop-400">{{ customer.phone or '-' }}</td>
+                    <td class="py-3 text-right text-white">{{ total|currency }}</td>
+                    <td class="py-3 text-right text-brass-400">{{ (total * 1.1)|currency }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <p class="text-workshop-500 py-8 text-center">No customer data for this period.</p>
+    {% endif %}
+</div>
+
+<!-- GST Summary for BAS -->
+<div class="mt-6 bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+    <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">GST SUMMARY (For BAS)</h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-workshop-700 rounded-lg p-4">
+            <p class="text-workshop-400 text-sm uppercase tracking-wider">GST on Sales (G1)</p>
+            <p class="text-2xl font-bold text-brass-400 mt-1">{{ total_gst|currency }}</p>
+        </div>
+        <div class="bg-workshop-700 rounded-lg p-4">
+            <p class="text-workshop-400 text-sm uppercase tracking-wider">Total Sales (ex GST)</p>
+            <p class="text-2xl font-bold text-white mt-1">{{ total_revenue|currency }}</p>
+        </div>
+        <div class="bg-workshop-700 rounded-lg p-4">
+            <p class="text-workshop-400 text-sm uppercase tracking-wider">Total Sales (inc GST)</p>
+            <p class="text-2xl font-bold text-green-400 mt-1">{{ (total_revenue * 1.1)|currency }}</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+// Chart.js configuration
+Chart.defaults.color = '#a0a0a0';
+Chart.defaults.borderColor = '#4a4a4a';
+Chart.defaults.backgroundColor = '#2a2a2a';
+
+// Monthly Revenue Trend Line Chart
+const monthlyCtx = document.getElementById('monthlyRevenueChart');
+if (monthlyCtx) {
+    const monthlyData = {
+        labels: [{% for month in monthly_data %}'{{ month.month }}'{% if not loop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Revenue (ex GST)',
+            data: [{% for month in monthly_data %}{{ month.revenue }}{% if not loop.last %},{% endif %}{% endfor %}],
+            borderColor: '#d4af37',
+            backgroundColor: 'rgba(212, 175, 55, 0.1)',
+            tension: 0.4,
+            fill: true
+        }, {
+            label: 'Revenue (inc GST)',
+            data: [{% for month in monthly_data %}{{ month.revenue * 1.1 }}{% if not loop.last %},{% endif %}{% endfor %}],
+            borderColor: '#8b7355',
+            backgroundColor: 'rgba(139, 115, 85, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    };
+    new Chart(monthlyCtx, {
+        type: 'line',
+        data: monthlyData,
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': $' + context.parsed.y.toLocaleString('en-AU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString('en-AU');
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Revenue vs Profit vs COGS Stacked Bar Chart
+const revenueProfitCtx = document.getElementById('revenueProfitChart');
+if (revenueProfitCtx) {
+    new Chart(revenueProfitCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for month in monthly_data %}'{{ month.month }}'{% if not loop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'COGS',
+                data: [{% for month in monthly_data %}{{ month.cogs }}{% if not loop.last %},{% endif %}{% endfor %}],
+                backgroundColor: '#ef4444'
+            }, {
+                label: 'Gross Profit',
+                data: [{% for month in monthly_data %}{{ month.profit }}{% if not loop.last %},{% endif %}{% endfor %}],
+                backgroundColor: '#22c55e'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': $' + context.parsed.y.toLocaleString('en-AU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { stacked: true },
+                y: {
+                    stacked: true,
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString('en-AU');
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Quarterly Comparison Bar Chart
+const quarterlyCtx = document.getElementById('quarterlyChart');
+if (quarterlyCtx) {
+    new Chart(quarterlyCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for q in quarterly_data %}'{{ q.quarter }}'{% if not loop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Revenue (ex GST)',
+                data: [{% for q in quarterly_data %}{{ q.revenue }}{% if not loop.last %},{% endif %}{% endfor %}],
+                backgroundColor: '#d4af37'
+            }, {
+                label: 'GST',
+                data: [{% for q in quarterly_data %}{{ q.gst }}{% if not loop.last %},{% endif %}{% endfor %}],
+                backgroundColor: '#3b82f6'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': $' + context.parsed.y.toLocaleString('en-AU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString('en-AU');
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Revenue by Status Pie Chart
+const statusCtx = document.getElementById('statusChart');
+if (statusCtx) {
+    const statusLabels = {
+        'completed': 'Completed',
+        'deposit_paid': 'Deposit Paid',
+        'in_progress': 'In Progress',
+        'quoted': 'Quoted',
+        'cancelled': 'Cancelled'
+    };
+    
+    const statusData = [
+        {% for item in revenue_by_status %}
+        {status: '{{ item[0] }}', revenue: {{ item[1] }}}{% if not loop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: statusData.map(d => statusLabels[d.status] || d.status),
+            datasets: [{
+                data: statusData.map(d => d.revenue),
+                backgroundColor: [
+                    '#22c55e',
+                    '#3b82f6',
+                    '#f59e0b',
+                    '#8b5cf6',
+                    '#ef4444'
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'right' },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const label = context.label || '';
+                            const value = context.parsed || 0;
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const percentage = ((value / total) * 100).toFixed(1);
+                            return label + ': $' + value.toLocaleString('en-AU', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' (' + percentage + '%)';
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+
+{% if year_comparison|length > 1 %}
+// Year-over-Year Comparison Bar Chart
+const yearCtx = document.getElementById('yearComparisonChart');
+if (yearCtx) {
+    new Chart(yearCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for year in year_comparison %}'FY{{ year.year }}/{{ year.year + 1 }}'{% if not loop.last %},{% endif %}{% endfor %}],
+            datasets: [{
+                label: 'Revenue (ex GST)',
+                data: [{% for year in year_comparison %}{{ year.revenue }}{% if not loop.last %},{% endif %}{% endfor %}],
+                backgroundColor: '#d4af37'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return 'Revenue: $' + context.parsed.y.toLocaleString('en-AU', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                        }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString('en-AU');
+                        }
+                    }
+                }
+            }
+        }
+    });
+}
+{% endif %}
+</script>
+{% endblock %}

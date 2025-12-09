@@ -1,0 +1,330 @@
+{% extends 'base.html' %}
+{% block title %}{% if job %}Edit Job {{ job.quote_number }}{% else %}New Job{% endif %}{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <a href="{{ url_for('jobs') }}" class="text-workshop-400 hover:text-white transition mb-2 inline-flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        Back to Jobs
+    </a>
+    <h1 class="font-display text-4xl tracking-wider text-brass-400">{% if job %}EDIT JOB {{ job.quote_number }}{% else %}NEW JOB{% endif %}</h1>
+</div>
+
+<form method="POST" class="space-y-6">
+    <!-- Customer Section -->
+    <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+        <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">CUSTOMER DETAILS</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="relative">
+                <label class="block text-sm font-medium text-workshop-300 mb-2">Customer Name *</label>
+                <input type="text" name="customer_name" id="customerName" required
+                       value="{{ job.customer.name if job else '' }}"
+                       class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2.5 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none"
+                       placeholder="Search or enter customer name..." autocomplete="off">
+                <div id="customerDropdown" class="hidden absolute z-50 w-full mt-1 bg-workshop-700 border border-workshop-600 rounded-lg shadow-xl max-h-60 overflow-auto"></div>
+            </div>
+            <div class="relative">
+                <label class="block text-sm font-medium text-workshop-300 mb-2">Phone</label>
+                <input type="text" name="customer_phone" id="customerPhone"
+                       value="{{ job.customer.phone if job else '' }}"
+                       class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2.5 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none"
+                       placeholder="Search by phone..." autocomplete="off">
+                <div id="phoneDropdown" class="hidden absolute z-50 w-full mt-1 bg-workshop-700 border border-workshop-600 rounded-lg shadow-xl max-h-60 overflow-auto"></div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-workshop-300 mb-2">Email</label>
+                <input type="email" name="customer_email" id="customerEmail"
+                       value="{{ job.customer.email if job else '' }}"
+                       class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2.5 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none"
+                       placeholder="customer@email.com">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-workshop-300 mb-2">Address</label>
+                <input type="text" name="customer_address" id="customerAddress"
+                       value="{{ job.customer.address if job else '' }}"
+                       class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2.5 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none"
+                       placeholder="123 Main St, Suburb">
+            </div>
+        </div>
+    </div>
+
+    <!-- Job Section -->
+    <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+        <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">JOB DETAILS</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-workshop-300 mb-2">Description *</label>
+                <textarea name="description" rows="3" required
+                          class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2.5 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none resize-none"
+                          placeholder="Describe the job...">{{ job.description if job else '' }}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-workshop-300 mb-2">Date (DD/MM/YYYY)</label>
+                <div class="flex items-center gap-2">
+                    <input type="date" name="date" id="jobDate"
+                           value="{{ job.date|isodate if job else today|isodate }}"
+                           class="flex-1 bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2.5 text-white focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none"
+                           onchange="updateDateDisplay()">
+                    <span id="dateDisplay" class="text-workshop-400 text-sm font-medium min-w-[100px]">
+                        {{ job.date|ausdate if job else today|ausdate }}
+                    </span>
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-workshop-300 mb-2">Status</label>
+                <select name="status" class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2.5 text-white focus:border-leather-500 outline-none">
+                    {% for status, label in STATUS_LABELS.items() %}
+                    <option value="{{ status }}" {% if job and job.status == status %}selected{% elif not job and status == 'quoted' %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-workshop-300 mb-2">Price (ex GST)</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2.5 text-workshop-500">$</span>
+                    <input type="number" name="price" id="priceInput" step="0.01" min="0"
+                           value="{{ job.price if job else '' }}"
+                           class="w-full bg-workshop-700 border border-workshop-600 rounded-lg pl-7 pr-4 py-2.5 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none"
+                           placeholder="0.00" onchange="updateGST()">
+                </div>
+                <p class="text-sm text-workshop-500 mt-1">
+                    GST (10%): $<span id="gstAmount">0.00</span> | 
+                    <span class="text-brass-400">Inc GST: $<span id="totalAmount">0.00</span></span>
+                </p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-workshop-300 mb-2">Deposit ($)</label>
+                <div class="relative">
+                    <span class="absolute left-3 top-2.5 text-workshop-500">$</span>
+                    <input type="number" name="deposit" step="0.01" min="0"
+                           value="{{ job.deposit if job else '' }}"
+                           class="w-full bg-workshop-700 border border-workshop-600 rounded-lg pl-7 pr-4 py-2.5 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none"
+                           placeholder="0.00">
+                </div>
+            </div>
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-workshop-300 mb-2">Notes</label>
+                <textarea name="notes" rows="2"
+                          class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2.5 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none resize-none"
+                          placeholder="Additional notes...">{{ job.notes if job else '' }}</textarea>
+            </div>
+        </div>
+    </div>
+
+    <!-- Materials Section -->
+    <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="font-display text-xl tracking-wider text-brass-400">MATERIALS USED (COGS)</h2>
+            <button type="button" onclick="addMaterial()" class="px-3 py-1 bg-workshop-600 hover:bg-workshop-500 rounded-lg text-sm transition">
+                + Add Material
+            </button>
+        </div>
+        <div id="materialsContainer" class="space-y-3">
+            {% if job and job.materials %}
+                {% for material in job.materials %}
+                <div class="material-row flex items-center gap-3">
+                    <select name="material_category[]" class="w-32 bg-workshop-700 border border-workshop-600 rounded-lg px-3 py-2 text-white text-sm focus:border-leather-500 outline-none">
+                        <option value="Labour" {% if material.category == 'Labour' %}selected{% endif %}>Labour</option>
+                        <option value="Materials" {% if material.category == 'Materials' %}selected{% endif %}>Materials</option>
+                        <option value="Freight" {% if material.category == 'Freight' %}selected{% endif %}>Freight</option>
+                        <option value="Subcontractor" {% if material.category == 'Subcontractor' %}selected{% endif %}>Subcontractor</option>
+                        <option value="Other" {% if material.category == 'Other' %}selected{% endif %}>Other</option>
+                    </select>
+                    <input type="text" name="material_desc[]" value="{{ material.description }}"
+                           class="flex-1 bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2 text-white placeholder-workshop-500 focus:border-leather-500 outline-none"
+                           placeholder="Description...">
+                    <div class="relative w-32">
+                        <span class="absolute left-3 top-2 text-workshop-500">$</span>
+                        <input type="number" name="material_cost[]" step="0.01" min="0" value="{{ material.cost }}"
+                               class="w-full bg-workshop-700 border border-workshop-600 rounded-lg pl-7 pr-3 py-2 text-white placeholder-workshop-500 focus:border-leather-500 outline-none"
+                               placeholder="0.00" onchange="updateTotalCOGS()">
+                    </div>
+                    <button type="button" onclick="removeMaterial(this)" class="p-2 text-red-400 hover:text-red-300 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="material-row flex items-center gap-3">
+                    <select name="material_category[]" class="w-32 bg-workshop-700 border border-workshop-600 rounded-lg px-3 py-2 text-white text-sm focus:border-leather-500 outline-none">
+                        <option value="Labour">Labour</option>
+                        <option value="Materials" selected>Materials</option>
+                        <option value="Freight">Freight</option>
+                        <option value="Subcontractor">Subcontractor</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <input type="text" name="material_desc[]"
+                           class="flex-1 bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2 text-white placeholder-workshop-500 focus:border-leather-500 outline-none"
+                           placeholder="Description...">
+                    <div class="relative w-32">
+                        <span class="absolute left-3 top-2 text-workshop-500">$</span>
+                        <input type="number" name="material_cost[]" step="0.01" min="0"
+                               class="w-full bg-workshop-700 border border-workshop-600 rounded-lg pl-7 pr-3 py-2 text-white placeholder-workshop-500 focus:border-leather-500 outline-none"
+                               placeholder="0.00" onchange="updateTotalCOGS()">
+                    </div>
+                    <button type="button" onclick="removeMaterial(this)" class="p-2 text-red-400 hover:text-red-300 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+        <div class="mt-4 pt-4 border-t border-workshop-700 flex justify-between items-center">
+            <span class="text-workshop-400">Total Materials Cost (COGS):</span>
+            <span class="text-lg font-medium text-red-400">$<span id="totalCOGS">{{ job.total_cogs|default(0, true)|round(2) if job else '0.00' }}</span></span>
+        </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="flex items-center justify-end space-x-4">
+        <a href="{{ url_for('jobs') }}" class="px-6 py-2.5 bg-workshop-700 hover:bg-workshop-600 rounded-lg transition">Cancel</a>
+        <button type="submit" class="px-6 py-2.5 bg-leather-500 hover:bg-leather-400 rounded-lg transition font-medium">
+            {% if job %}Update Job{% else %}Create Job{% endif %}
+        </button>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const customerNameInput = document.getElementById('customerName');
+const customerPhoneInput = document.getElementById('customerPhone');
+const customerEmailInput = document.getElementById('customerEmail');
+const customerAddressInput = document.getElementById('customerAddress');
+const customerDropdown = document.getElementById('customerDropdown');
+const phoneDropdown = document.getElementById('phoneDropdown');
+
+let searchTimeout;
+
+function fillCustomerFields(customer) {
+    customerNameInput.value = customer.name;
+    customerPhoneInput.value = customer.phone;
+    customerEmailInput.value = customer.email;
+    customerAddressInput.value = customer.address;
+    customerDropdown.classList.add('hidden');
+    phoneDropdown.classList.add('hidden');
+}
+
+function showDropdown(dropdown, customers) {
+    if (customers.length === 0) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+    
+    dropdown.innerHTML = customers.map(c => `
+        <div class="px-4 py-3 hover:bg-workshop-600 cursor-pointer border-b border-workshop-600 last:border-0" data-customer='${JSON.stringify(c)}'>
+            <div class="font-medium text-white">${c.name}</div>
+            <div class="text-sm text-workshop-400">${c.phone || 'No phone'} ${c.email ? '• ' + c.email : ''}</div>
+        </div>
+    `).join('');
+    
+    dropdown.querySelectorAll('[data-customer]').forEach(el => {
+        el.addEventListener('click', () => {
+            fillCustomerFields(JSON.parse(el.dataset.customer));
+        });
+    });
+    
+    dropdown.classList.remove('hidden');
+}
+
+function searchCustomers(query, dropdown) {
+    clearTimeout(searchTimeout);
+    if (query.length < 1) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+    
+    searchTimeout = setTimeout(() => {
+        fetch(`/api/customers/search?q=${encodeURIComponent(query)}`)
+            .then(r => r.json())
+            .then(customers => showDropdown(dropdown, customers))
+            .catch(() => dropdown.classList.add('hidden'));
+    }, 200);
+}
+
+customerNameInput.addEventListener('input', (e) => searchCustomers(e.target.value, customerDropdown));
+customerPhoneInput.addEventListener('input', (e) => searchCustomers(e.target.value, phoneDropdown));
+
+document.addEventListener('click', (e) => {
+    if (!customerNameInput.contains(e.target) && !customerDropdown.contains(e.target)) {
+        customerDropdown.classList.add('hidden');
+    }
+    if (!customerPhoneInput.contains(e.target) && !phoneDropdown.contains(e.target)) {
+        phoneDropdown.classList.add('hidden');
+    }
+});
+
+// GST calculation
+function updateGST() {
+    const price = parseFloat(document.getElementById('priceInput').value) || 0;
+    const gst = price * 0.10;
+    const total = price + gst;
+    document.getElementById('gstAmount').textContent = gst.toFixed(2);
+    document.getElementById('totalAmount').textContent = total.toFixed(2);
+}
+
+// Materials
+function addMaterial() {
+    const container = document.getElementById('materialsContainer');
+    const row = document.createElement('div');
+    row.className = 'material-row flex items-center gap-3';
+    row.innerHTML = `
+        <select name="material_category[]" class="w-32 bg-workshop-700 border border-workshop-600 rounded-lg px-3 py-2 text-white text-sm focus:border-leather-500 outline-none">
+            <option value="Labour">Labour</option>
+            <option value="Materials" selected>Materials</option>
+            <option value="Freight">Freight</option>
+            <option value="Subcontractor">Subcontractor</option>
+            <option value="Other">Other</option>
+        </select>
+        <input type="text" name="material_desc[]"
+               class="flex-1 bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2 text-white placeholder-workshop-500 focus:border-leather-500 outline-none"
+               placeholder="Description...">
+        <div class="relative w-32">
+            <span class="absolute left-3 top-2 text-workshop-500">$</span>
+            <input type="number" name="material_cost[]" step="0.01" min="0"
+                   class="w-full bg-workshop-700 border border-workshop-600 rounded-lg pl-7 pr-3 py-2 text-white placeholder-workshop-500 focus:border-leather-500 outline-none"
+                   placeholder="0.00" onchange="updateTotalCOGS()">
+        </div>
+        <button type="button" onclick="removeMaterial(this)" class="p-2 text-red-400 hover:text-red-300 transition">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+        </button>
+    `;
+    container.appendChild(row);
+}
+
+function removeMaterial(btn) {
+    const row = btn.closest('.material-row');
+    if (document.querySelectorAll('.material-row').length > 1) {
+        row.remove();
+    } else {
+        row.querySelectorAll('input').forEach(i => i.value = '');
+    }
+    updateTotalCOGS();
+}
+
+function updateTotalCOGS() {
+    let total = 0;
+    document.querySelectorAll('input[name="material_cost[]"]').forEach(input => {
+        total += parseFloat(input.value) || 0;
+    });
+    document.getElementById('totalCOGS').textContent = total.toFixed(2);
+}
+
+// Date display helper (Australian format)
+function updateDateDisplay() {
+    const dateInput = document.getElementById('jobDate');
+    const display = document.getElementById('dateDisplay');
+    if (dateInput.value) {
+        const date = new Date(dateInput.value + 'T00:00:00');
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        display.textContent = `${day}/${month}/${year}`;
+    }
+}
+
+// Initialize
+updateGST();
+updateTotalCOGS();
+updateDateDisplay();
+</script>
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="font-display text-4xl tracking-wider text-brass-400">DASHBOARD</h1>
+    <p class="text-workshop-400 mt-1">Overview of your business - {{ current_fy|fy_label }}</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <a href="{{ url_for('reports') }}" class="bg-workshop-800 rounded-xl p-6 border border-workshop-700 hover:border-brass-500 hover:bg-workshop-750 transition-all cursor-pointer group">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-workshop-400 text-sm uppercase tracking-wider">Total Revenue (ex GST)</p>
+                <p class="text-3xl font-bold text-brass-400 mt-1 group-hover:text-brass-300 transition">{{ total_revenue|currency }}</p>
+                <p class="text-sm text-workshop-500 mt-1">+{{ (total_revenue * 0.1)|currency }} GST = {{ (total_revenue * 1.1)|currency }}</p>
+            </div>
+            <div class="w-12 h-12 bg-brass-500/20 rounded-lg flex items-center justify-center group-hover:bg-brass-500/30 transition">
+                <svg class="w-6 h-6 text-brass-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </div>
+        </div>
+    </a>
+    
+    <a href="{{ url_for('reports', fy=current_fy) }}" class="bg-workshop-800 rounded-xl p-6 border border-workshop-700 hover:border-green-500 hover:bg-workshop-750 transition-all cursor-pointer group">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-workshop-400 text-sm uppercase tracking-wider">{{ current_fy|fy_label }} Revenue</p>
+                <p class="text-3xl font-bold text-green-400 mt-1 group-hover:text-green-300 transition">{{ fy_revenue|currency }}</p>
+                <p class="text-sm text-workshop-500 mt-1">+{{ (fy_revenue * 0.1)|currency }} GST = {{ (fy_revenue * 1.1)|currency }}</p>
+            </div>
+            <div class="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center group-hover:bg-green-500/30 transition">
+                <svg class="w-6 h-6 text-green-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+            </div>
+        </div>
+    </a>
+    
+    <a href="{{ url_for('jobs', status='quoted') }}" class="bg-workshop-800 rounded-xl p-6 border border-workshop-700 hover:border-purple-500 hover:bg-workshop-750 transition-all cursor-pointer group">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-workshop-400 text-sm uppercase tracking-wider">Pending Jobs</p>
+                <p class="text-3xl font-bold text-purple-400 mt-1 group-hover:text-purple-300 transition">{{ pending_jobs }}</p>
+                <p class="text-sm text-workshop-500 mt-1">Click to view</p>
+            </div>
+            <div class="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center group-hover:bg-purple-500/30 transition">
+                <svg class="w-6 h-6 text-purple-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+            </div>
+        </div>
+    </a>
+    
+    <a href="{{ url_for('customers') }}" class="bg-workshop-800 rounded-xl p-6 border border-workshop-700 hover:border-blue-500 hover:bg-workshop-750 transition-all cursor-pointer group">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-workshop-400 text-sm uppercase tracking-wider">Total Customers</p>
+                <p class="text-3xl font-bold text-blue-400 mt-1 group-hover:text-blue-300 transition">{{ total_customers }}</p>
+                <p class="text-sm text-workshop-500 mt-1">Click to view</p>
+            </div>
+            <div class="w-12 h-12 bg-blue-500/20 rounded-lg flex items-center justify-center group-hover:bg-blue-500/30 transition">
+                <svg class="w-6 h-6 text-blue-400 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+            </div>
+        </div>
+    </a>
+</div>
+
+<!-- Status Overview & Recent Jobs -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <div class="lg:col-span-1 bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+        <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">JOB STATUS</h2>
+        <div class="space-y-3">
+            {% for status, label in STATUS_LABELS.items() %}
+            <a href="{{ url_for('jobs', status=status) }}" class="flex items-center justify-between hover:bg-workshop-700/50 rounded-lg px-2 py-1.5 transition cursor-pointer group">
+                <div class="flex items-center space-x-3">
+                    <div class="w-3 h-3 rounded-full {{ STATUS_COLORS[status] }}"></div>
+                    <span class="text-workshop-300 group-hover:text-white transition">{{ label }}</span>
+                </div>
+                <span class="text-white font-medium group-hover:text-brass-400 transition">{{ status_counts.get(status, 0) }}</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <div class="lg:col-span-2 bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="font-display text-xl tracking-wider text-brass-400">RECENT JOBS</h2>
+            <a href="{{ url_for('jobs') }}" class="text-leather-400 hover:text-leather-300 text-sm">View All →</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="text-workshop-400 text-sm border-b border-workshop-700">
+                        <th class="text-left py-3 px-2">Quote #</th>
+                        <th class="text-left py-3 px-2">Customer</th>
+                        <th class="text-left py-3 px-2">Date</th>
+                        <th class="text-left py-3 px-2">Status</th>
+                        <th class="text-right py-3 px-2">Price (ex GST)</th>
+                        <th class="text-right py-3 px-2">Inc GST</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in recent_jobs %}
+                    <tr class="border-b border-workshop-700/50 hover:bg-workshop-700/30 transition cursor-pointer" onclick="window.location='{{ url_for('job_detail', job_id=job.id) }}'">
+                        <td class="py-3 px-2 font-mono text-brass-400">{{ job.quote_number }}</td>
+                        <td class="py-3 px-2">{{ job.customer.name }}</td>
+                        <td class="py-3 px-2 text-workshop-400">{{ job.date|ausdate }}</td>
+                        <td class="py-3 px-2">
+                            <span class="px-2 py-1 rounded-full text-xs {{ STATUS_COLORS[job.status] }} text-white">{{ STATUS_LABELS[job.status] }}</span>
+                        </td>
+                        <td class="py-3 px-2 text-right font-medium">{{ job.price|currency }}</td>
+                        <td class="py-3 px-2 text-right text-brass-400">{{ job.price_inc_gst|currency }}</td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="py-8 text-center text-workshop-500">No jobs yet. <a href="{{ url_for('job_new') }}" class="text-leather-400 hover:underline">Create your first job</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+    <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">QUICK ACTIONS</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <a href="{{ url_for('job_new') }}" class="flex flex-col items-center p-4 bg-workshop-700 rounded-lg hover:bg-workshop-600 transition">
+            <svg class="w-8 h-8 text-leather-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            <span class="text-sm text-workshop-300">New Job</span>
+        </a>
+        <a href="{{ url_for('customers') }}" class="flex flex-col items-center p-4 bg-workshop-700 rounded-lg hover:bg-workshop-600 transition">
+            <svg class="w-8 h-8 text-blue-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+            <span class="text-sm text-workshop-300">Customers</span>
+        </a>
+        <a href="{{ url_for('reports') }}" class="flex flex-col items-center p-4 bg-workshop-700 rounded-lg hover:bg-workshop-600 transition">
+            <svg class="w-8 h-8 text-green-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+            <span class="text-sm text-workshop-300">Reports</span>
+        </a>
+        <a href="{{ url_for('backup_page') }}" class="flex flex-col items-center p-4 bg-workshop-700 rounded-lg hover:bg-workshop-600 transition">
+            <svg class="w-8 h-8 text-purple-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+            <span class="text-sm text-workshop-300">Backup</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

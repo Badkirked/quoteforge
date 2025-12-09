@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Edit {{ customer.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <a href="{{ url_for('customer_detail', customer_id=customer.id) }}" class="text-workshop-400 hover:text-white transition mb-2 inline-flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        Back to Customer
+    </a>
+    <h1 class="font-display text-4xl tracking-wider text-brass-400">EDIT CUSTOMER</h1>
+</div>
+
+<form method="POST" class="max-w-2xl">
+    <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700 space-y-4">
+        <div>
+            <label class="block text-sm font-medium text-workshop-300 mb-2">Name *</label>
+            <input type="text" name="name" required value="{{ customer.name }}"
+                   class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2.5 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-workshop-300 mb-2">Phone</label>
+            <input type="text" name="phone" value="{{ customer.phone or '' }}"
+                   class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2.5 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-workshop-300 mb-2">Email</label>
+            <input type="email" name="email" value="{{ customer.email or '' }}"
+                   class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2.5 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none">
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-workshop-300 mb-2">Address</label>
+            <textarea name="address" rows="2"
+                      class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2.5 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none resize-none">{{ customer.address or '' }}</textarea>
+        </div>
+    </div>
+    
+    <div class="flex items-center justify-end space-x-4 mt-6">
+        <a href="{{ url_for('customer_detail', customer_id=customer.id) }}" class="px-6 py-2.5 bg-workshop-700 hover:bg-workshop-600 rounded-lg transition">Cancel</a>
+        <button type="submit" class="px-6 py-2.5 bg-leather-500 hover:bg-leather-400 rounded-lg transition font-medium">Save Changes</button>
+    </div>
+</form>
+{% endblock %}
+

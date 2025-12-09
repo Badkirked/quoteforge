@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - QuoteForge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        workshop: { 900: '#0f0f0f', 800: '#1a1a1a', 700: '#2d2d2d', 600: '#404040', 500: '#666666', 400: '#888888', 300: '#aaaaaa' },
+                        leather: { 500: '#8B4513', 400: '#A0522D', 300: '#CD853F' },
+                        brass: { 500: '#B8860B', 400: '#DAA520', 300: '#FFD700' }
+                    },
+                    fontFamily: { display: ['Oswald', 'sans-serif'], body: ['Source Sans Pro', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-workshop-900 text-white font-body min-h-screen flex items-center justify-center">
+    <div class="w-full max-w-md px-6">
+        <!-- Logo/Header -->
+        <div class="text-center mb-8">
+            <div class="w-20 h-20 mx-auto mb-4 bg-workshop-800 rounded-full flex items-center justify-center border-2 border-brass-500">
+                <svg class="w-10 h-10 text-brass-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+            </div>
+            <h1 class="font-display text-4xl tracking-wider text-brass-400">QUOTEFORGE</h1>
+            <p class="text-workshop-400 mt-2">Upholstery Quote Management</p>
+        </div>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for category, message in messages %}
+            <div class="px-4 py-3 rounded-lg {% if category == 'error' %}bg-red-500/20 text-red-300 border border-red-500/30{% else %}bg-green-500/20 text-green-300 border border-green-500/30{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        {% endwith %}
+        
+        <!-- Login Form -->
+        <div class="bg-workshop-800 rounded-xl p-8 border border-workshop-700 shadow-2xl">
+            <form method="POST" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-workshop-300 mb-2">Password</label>
+                    <input type="password" name="password" required autofocus
+                           class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-3 text-white placeholder-workshop-500 focus:border-brass-500 focus:ring-2 focus:ring-brass-500/20 outline-none transition"
+                           placeholder="Enter password...">
+                </div>
+                <button type="submit" class="w-full py-3 bg-leather-500 hover:bg-leather-400 rounded-lg font-medium transition transform hover:scale-[1.02] active:scale-[0.98]">
+                    Sign In
+                </button>
+            </form>
+        </div>
+        
+        <p class="text-center text-workshop-500 text-sm mt-6">
+            David's Upholstery Quote System
+        </p>
+    </div>
+</body>
+</html>
+

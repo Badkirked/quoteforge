@@ -1,0 +1,53 @@
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8001
+ * Running on http://192.168.0.144:8001
+Press CTRL+C to quit
+127.0.0.1 - - [09/Dec/2025 12:48:53] "GET /login HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:50:27] "GET / HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:50:28] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:50:28] "GET /reports HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:50:29] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:50:32] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:50:35] "GET /customers HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:50:35] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:50:41] "GET / HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:50:41] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:50:42] "GET /jobs?status=quoted HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:50:43] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:51:54] "GET /apple-touch-icon-precomposed.png HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:51:54] "GET /apple-touch-icon.png HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:51:55] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:51:57] "GET / HTTP/1.1" 302 -
+192.168.0.144 - - [09/Dec/2025 12:51:57] "GET /login?next=http://quoteforge.notermsandconditions.com/ HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:52:02] "GET / HTTP/1.1" 302 -
+192.168.0.144 - - [09/Dec/2025 12:52:02] "GET /login?next=http://quoteforge.notermsandconditions.com/ HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:52:04] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:52:16] "POST /login?next=http://quoteforge.notermsandconditions.com/ HTTP/1.1" 302 -
+192.168.0.144 - - [09/Dec/2025 12:52:16] "GET / HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:52:56] "GET / HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:52:56] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:52:59] "GET /jobs HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:53:00] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:53:09] "GET /jobs?search=&status=&fy=2014&quarter=&month= HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:53:10] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:53:16] "GET /reports HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:53:16] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:53:49] "GET / HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:53:49] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:53:51] "GET /jobs HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:53:52] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:53:56] "GET /customers HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:53:57] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:53:58] "GET /customers/2444 HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:53:58] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:54:00] "GET /customers HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:54:01] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:54:18] "GET /customers?search=0 HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:54:19] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:54:24] "GET /customers?search=04 HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:54:25] "GET /favicon.ico HTTP/1.1" 404 -
+192.168.0.144 - - [09/Dec/2025 12:54:32] "GET /customers?search= HTTP/1.1" 200 -
+192.168.0.144 - - [09/Dec/2025 12:54:33] "GET /favicon.ico HTTP/1.1" 404 -

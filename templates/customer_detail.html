@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}{{ customer.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <a href="{{ url_for('customers') }}" class="text-workshop-400 hover:text-white transition mb-2 inline-flex items-center">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+        Back to Customers
+    </a>
+    <div class="flex items-center justify-between">
+        <h1 class="font-display text-4xl tracking-wider text-brass-400">{{ customer.name }}</h1>
+        <a href="{{ url_for('customer_edit', customer_id=customer.id) }}" class="px-4 py-2 bg-workshop-700 hover:bg-workshop-600 rounded-lg transition flex items-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            <span>Edit</span>
+        </a>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Customer Info -->
+    <div class="space-y-6">
+        <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+            <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">CONTACT INFO</h2>
+            <div class="space-y-4">
+                {% if customer.phone %}
+                <div>
+                    <label class="text-workshop-500 text-sm">Phone</label>
+                    <p class="text-white mt-1">
+                        <a href="tel:{{ customer.phone }}" class="hover:text-brass-400 transition">{{ customer.phone }}</a>
+                    </p>
+                </div>
+                {% endif %}
+                {% if customer.email %}
+                <div>
+                    <label class="text-workshop-500 text-sm">Email</label>
+                    <p class="text-white mt-1">
+                        <a href="mailto:{{ customer.email }}" class="hover:text-brass-400 transition">{{ customer.email }}</a>
+                    </p>
+                </div>
+                {% endif %}
+                {% if customer.address %}
+                <div>
+                    <label class="text-workshop-500 text-sm">Address</label>
+                    <p class="text-white mt-1">{{ customer.address }}</p>
+                </div>
+                {% endif %}
+                <div>
+                    <label class="text-workshop-500 text-sm">Customer Since</label>
+                    <p class="text-white mt-1">{{ customer.created_at|datetime }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+            <h2 class="font-display text-xl tracking-wider text-brass-400 mb-4">STATS</h2>
+            <div class="space-y-3">
+                <div class="flex justify-between items-center">
+                    <span class="text-workshop-400">Total Jobs</span>
+                    <span class="text-xl font-bold text-white">{{ customer.jobs|length }}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-workshop-400">Total Spent</span>
+                    <span class="text-xl font-bold text-brass-400">{{ total_spent|currency }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Jobs History -->
+    <div class="lg:col-span-2">
+        <div class="bg-workshop-800 rounded-xl p-6 border border-workshop-700">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="font-display text-xl tracking-wider text-brass-400">JOB HISTORY</h2>
+                <a href="{{ url_for('job_new') }}" class="text-leather-400 hover:text-leather-300 text-sm">+ New Job</a>
+            </div>
+            
+            {% if customer.jobs %}
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="text-workshop-400 text-sm border-b border-workshop-700">
+                            <th class="text-left py-3 px-2">Quote #</th>
+                            <th class="text-left py-3 px-2">Date</th>
+                            <th class="text-left py-3 px-2">Description</th>
+                            <th class="text-left py-3 px-2">Status</th>
+                            <th class="text-right py-3 px-2">Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for job in customer.jobs|sort(attribute='date', reverse=true) %}
+                        <tr class="border-b border-workshop-700/50 hover:bg-workshop-700/30 transition cursor-pointer" onclick="window.location='{{ url_for('job_detail', job_id=job.id) }}'">
+                            <td class="py-3 px-2 font-mono text-brass-400">{{ job.quote_number }}</td>
+                            <td class="py-3 px-2 text-workshop-400">{{ job.date|ausdate }}</td>
+                            <td class="py-3 px-2 text-workshop-300 max-w-xs truncate">{{ job.description[:30] }}{% if job.description|length > 30 %}...{% endif %}</td>
+                            <td class="py-3 px-2">
+                                <span class="px-2 py-1 rounded-full text-xs {{ STATUS_COLORS[job.status] }} text-white">{{ STATUS_LABELS[job.status] }}</span>
+                            </td>
+                            <td class="py-3 px-2 text-right font-medium">{{ job.price|currency }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-workshop-500 text-center py-8">No jobs yet for this customer.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+

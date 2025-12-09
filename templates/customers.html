@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% block title %}Customers{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-8">
+    <div>
+        <h1 class="font-display text-4xl tracking-wider text-brass-400">CUSTOMERS</h1>
+        <p class="text-workshop-400 mt-1">Manage your customer database</p>
+    </div>
+</div>
+
+<!-- Search -->
+<div class="bg-workshop-800 rounded-xl p-4 border border-workshop-700 mb-6">
+    <form method="GET" class="flex items-center gap-4">
+        <div class="flex-1">
+            <input type="text" name="search" id="searchInput" value="{{ search }}" placeholder="Search by name, phone, or email..."
+                   class="w-full bg-workshop-700 border border-workshop-600 rounded-lg px-4 py-2 text-white placeholder-workshop-500 focus:border-leather-500 focus:ring-1 focus:ring-leather-500 outline-none"
+                   autocomplete="off">
+        </div>
+        <button type="button" onclick="applySearch()" class="px-4 py-2 bg-workshop-600 hover:bg-workshop-500 rounded-lg transition">Search</button>
+        {% if search %}
+        <a href="{{ url_for('customers') }}" class="px-4 py-2 text-workshop-400 hover:text-white transition">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Customers Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for customer in customers %}
+    <a href="{{ url_for('customer_detail', customer_id=customer.id) }}" class="bg-workshop-800 rounded-xl p-5 border border-workshop-700 hover:border-leather-500 transition group">
+        <div class="flex items-start justify-between">
+            <div>
+                <h3 class="font-medium text-white group-hover:text-brass-400 transition">{{ customer.name }}</h3>
+                {% if customer.phone %}
+                <p class="text-workshop-400 text-sm mt-1">{{ customer.phone }}</p>
+                {% endif %}
+                {% if customer.email %}
+                <p class="text-workshop-500 text-sm">{{ customer.email }}</p>
+                {% endif %}
+            </div>
+            <div class="text-right">
+                <span class="text-brass-400 font-medium">{{ customer.jobs|length }}</span>
+                <span class="text-workshop-500 text-sm"> jobs</span>
+            </div>
+        </div>
+        {% if customer.address %}
+        <p class="text-workshop-500 text-sm mt-3 truncate">{{ customer.address }}</p>
+        {% endif %}
+    </a>
+    {% else %}
+    <div class="col-span-full text-center py-12 text-workshop-500">
+        {% if search %}
+        No customers found matching "{{ search }}"
+        {% else %}
+        No customers yet. They'll appear here when you create jobs.
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<div class="mt-4 text-workshop-500 text-sm">
+    Showing {{ customers|length }} customer{% if customers|length != 1 %}s{% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function() {
+    let searchTimeout;
+    const searchInput = document.getElementById('searchInput');
+    const resultsContainer = document.querySelector('.grid');
+    const countDisplay = document.querySelector('.mt-4.text-workshop-500');
+    
+    if (!searchInput || !resultsContainer) return;
+    
+    // AJAX search - no page reload
+    function doSearch() {
+        const query = searchInput.value.trim();
+        
+        // Update URL without reload (for bookmarking/sharing)
+        const newUrl = query ? '{{ url_for("customers") }}?search=' + encodeURIComponent(query) : '{{ url_for("customers") }}';
+        history.replaceState(null, '', newUrl);
+        
+        // Fetch results via AJAX
+        fetch('/api/customers/search/full?q=' + encodeURIComponent(query))
+            .then(r => r.json())
+            .then(customers => {
+                // Build HTML for results
+                let html = '';
+                if (customers.length === 0) {
+                    html = `<div class="col-span-full text-center py-12 text-workshop-500">
+                        ${query ? 'No customers found matching "' + query + '"' : 'No customers yet.'}
+                    </div>`;
+                } else {
+                    customers.forEach(c => {
+                        html += `<a href="/customers/${c.id}" class="bg-workshop-800 rounded-xl p-5 border border-workshop-700 hover:border-leather-500 transition group">
+                            <div class="flex items-start justify-between">
+                                <div>
+                                    <h3 class="font-medium text-white group-hover:text-brass-400 transition">${escapeHtml(c.name)}</h3>
+                                    ${c.phone ? `<p class="text-workshop-400 text-sm mt-1">${escapeHtml(c.phone)}</p>` : ''}
+                                    ${c.email ? `<p class="text-workshop-500 text-sm">${escapeHtml(c.email)}</p>` : ''}
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-brass-400 font-medium">${c.job_count}</span>
+                                    <span class="text-workshop-500 text-sm"> jobs</span>
+                                </div>
+                            </div>
+                            ${c.address ? `<p class="text-workshop-500 text-sm mt-3 truncate">${escapeHtml(c.address)}</p>` : ''}
+                        </a>`;
+                    });
+                }
+                resultsContainer.innerHTML = html;
+                
+                // Update count
+                if (countDisplay) {
+                    countDisplay.textContent = `Showing ${customers.length} customer${customers.length !== 1 ? 's' : ''}`;
+                }
+                
+                // Show/hide clear link
+                const clearLink = document.querySelector('a[href="{{ url_for("customers") }}"]');
+                if (clearLink) {
+                    clearLink.style.display = query ? 'inline' : 'none';
+                }
+            })
+            .catch(err => console.error('Search error:', err));
+    }
+    
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // Live search as you type - 300ms debounce
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(doSearch, 300);
+    });
+    
+    // Enter key triggers immediate search
+    searchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            clearTimeout(searchTimeout);
+            doSearch();
+        }
+    });
+})();
+
+// Button click
+function applySearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.dispatchEvent(new Event('input'));
+    }
+}
+</script>
+{% endblock %}
+
