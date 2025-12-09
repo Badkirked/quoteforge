@@ -1,0 +1,35 @@
+{% extends "base_lcars.html" %}
+
+{% block header %}CLIENT DATABASE{% endblock %}
+
+{% block content %}
+    <div class="lcars-panel full">
+        <h3>REGISTERED ENTITIES</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>NAME</th>
+                    <th>CONTACT</th>
+                    <th>EMAIL</th>
+                    <th>JOBS</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in customers %}
+                <tr onclick="window.location='{{ url_for('customer_detail', customer_id=customer.id) }}'">
+                    <td style="color: var(--lcars-orange); font-weight: bold;">{{ customer.name }}</td>
+                    <td>{{ customer.phone }}</td>
+                    <td>{{ customer.email }}</td>
+                    <td style="text-align: center;">{{ customer.jobs|length }}</td>
+                    <td style="text-align: center;">ACCESS</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">NO RECORDS FOUND</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

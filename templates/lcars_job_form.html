@@ -1,0 +1,464 @@
+{% extends "base_lcars.html" %}
+
+{% block header %}INITIATE NEW RECORD{% endblock %}
+
+{% block content %}
+<style>
+    /* High Contrast Form Overrides for LCARS */
+    .lcars-form-wrapper {
+        padding: 20px;
+    }
+
+    .lcars-form-wrapper input, 
+    .lcars-form-wrapper select, 
+    .lcars-form-wrapper textarea {
+        background-color: #1a1a1a !important; /* Very dark grey for contrast */
+        border: 2px solid var(--lcars-blue-light) !important; /* Thicker, brighter border */
+        color: #ffffff !important; /* Bright white text */
+        border-radius: 8px !important; /* Slightly more rounded */
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif !important;
+        font-size: 18px !important; /* Larger text */
+        padding: 15px !important; /* Comfortable padding */
+        width: 100%;
+        box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+        transition: all 0.3s ease;
+    }
+    
+    .lcars-form-wrapper label {
+        color: var(--lcars-tangerine) !important; /* Bright orange */
+        text-transform: uppercase;
+        font-size: 16px !important;
+        letter-spacing: 1.5px;
+        font-weight: 700 !important;
+        margin-bottom: 10px !important;
+        display: block;
+        text-shadow: 0 0 5px rgba(255, 153, 51, 0.3);
+    }
+    
+    .lcars-section {
+        background-color: #050505 !important;
+        border: 2px solid var(--lcars-rust) !important;
+        border-radius: 20px;
+        padding: 30px !important;
+        margin-bottom: 30px;
+        position: relative;
+    }
+    
+    .lcars-section h2 {
+        color: var(--lcars-peach) !important;
+        font-size: 28px !important;
+        border-bottom: 2px solid var(--lcars-rust);
+        padding-bottom: 15px !important;
+        margin-bottom: 25px !important;
+        font-family: 'Antonio', sans-serif;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+    }
+    
+    .lcars-form-wrapper ::placeholder {
+        color: #666 !important;
+        opacity: 1;
+        font-style: italic;
+    }
+    
+    .lcars-form-wrapper select option {
+        background-color: #000;
+        color: #fff;
+        padding: 10px;
+    }
+    
+    /* Focus states */
+    .lcars-form-wrapper input:focus, 
+    .lcars-form-wrapper select:focus, 
+    .lcars-form-wrapper textarea:focus {
+        border-color: var(--lcars-tangerine) !important;
+        background-color: #222 !important;
+        box-shadow: 0 0 15px rgba(255, 153, 0, 0.3) !important;
+        outline: none !important;
+    }
+
+    /* Grid Layout */
+    .lcars-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px; /* Increased gap */
+    }
+    
+    @media (max-width: 1000px) {
+        .lcars-grid-2 {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Buttons */
+    .lcars-btn-cancel {
+        background: var(--lcars-rust) !important; 
+        color: #000 !important; 
+        font-weight: 900;
+        font-size: 18px;
+        text-transform: uppercase;
+        padding: 20px 40px;
+        border-radius: 30px 0 0 30px;
+        display: inline-block;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+    
+    .lcars-btn-submit {
+        background: var(--lcars-tangerine) !important; 
+        color: #000 !important; 
+        font-weight: 900;
+        font-size: 18px;
+        text-transform: uppercase;
+        padding: 20px 60px; /* Wider click area */
+        border-radius: 0 30px 30px 0;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .lcars-btn-cancel:hover, .lcars-btn-submit:hover {
+        filter: brightness(1.2);
+        box-shadow: 0 0 20px rgba(255, 153, 0, 0.4);
+    }
+    
+    .lcars-btn-add {
+        background: var(--lcars-blue) !important;
+        color: #000 !important;
+        padding: 10px 20px;
+        border-radius: 15px;
+        font-weight: bold;
+        text-transform: uppercase;
+        border: none;
+        cursor: pointer;
+    }
+    
+    .helper-text {
+        color: var(--lcars-blue-light);
+        font-size: 14px;
+        margin-top: 5px;
+        letter-spacing: 1px;
+    }
+    
+    .value-highlight {
+        color: var(--lcars-tangerine);
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+    
+    /* Date input custom styling */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(1) sepia(1) saturate(5) hue-rotate(180deg);
+        cursor: pointer;
+    }
+</style>
+
+<div class="lcars-panel full lcars-form-wrapper" style="overflow-y: auto;">
+    <form action="{{ url_for('job_new') }}" method="POST">
+        <!-- Customer Section -->
+        <div class="lcars-section">
+            <h2>CUSTOMER DATABASE ENTRY</h2>
+            <div class="lcars-grid-2">
+                <div class="relative">
+                    <label>Entity Name *</label>
+                    <input type="text" name="customer_name" id="customerName" required
+                           value="{{ job.customer.name if job else '' }}"
+                           placeholder="ENTER NAME OR SEARCH..." autocomplete="off">
+                    <div id="customerDropdown" class="hidden absolute z-50 w-full mt-1 border border-workshop-600 rounded-lg shadow-xl max-h-60 overflow-auto" style="background: #000; border: 2px solid var(--lcars-tangerine);"></div>
+                </div>
+                <div class="relative">
+                    <label>Comms Frequency (Phone)</label>
+                    <input type="text" name="customer_phone" id="customerPhone"
+                           value="{{ job.customer.phone if job else '' }}"
+                           placeholder="ENTER CONTACT NUMBER..." autocomplete="off">
+                    <div id="phoneDropdown" class="hidden absolute z-50 w-full mt-1 border border-workshop-600 rounded-lg shadow-xl max-h-60 overflow-auto" style="background: #000; border: 2px solid var(--lcars-tangerine);"></div>
+                </div>
+                <div>
+                    <label>Electronic Address (Email)</label>
+                    <input type="email" name="customer_email" id="customerEmail"
+                           value="{{ job.customer.email if job else '' }}"
+                           placeholder="USER@DOMAIN.COM">
+                </div>
+                <div>
+                    <label>Physical Location</label>
+                    <input type="text" name="customer_address" id="customerAddress"
+                           value="{{ job.customer.address if job else '' }}"
+                           placeholder="STREET ADDRESS, SECTOR">
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Section -->
+        <div class="lcars-section">
+            <h2>TASK SPECIFICATIONS</h2>
+            <div class="lcars-grid-2">
+                <div style="grid-column: span 2;">
+                    <label>Mission Description *</label>
+                    <textarea name="description" rows="3" required
+                              placeholder="ENTER JOB DETAILS..." style="min-height: 100px;">{{ job.description if job else '' }}</textarea>
+                </div>
+                <div>
+                    <label>Stardate (Due/Start)</label>
+                    <div class="flex items-center gap-4">
+                        <input type="date" name="date" id="jobDate"
+                               value="{{ job.date|isodate if job else today|isodate }}"
+                               onchange="updateDateDisplay()">
+                        <span id="dateDisplay" style="color: var(--lcars-tangerine); font-size: 24px; font-weight: 900; font-family: 'Antonio';">
+                            {{ job.date|ausdate if job else today|ausdate }}
+                        </span>
+                    </div>
+                </div>
+                <div>
+                    <label>Current Status</label>
+                    <select name="status" style="height: 56px;">
+                        {% for status, label in STATUS_LABELS.items() %}
+                        <option value="{{ status }}" {% if job and job.status == status %}selected{% elif not job and status == 'quoted' %}selected{% endif %}>{{ label|upper }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label>Resource Allocation (Price ex GST)</label>
+                    <div class="relative">
+                        <span style="position: absolute; left: 15px; top: 50px; color: var(--lcars-tangerine); font-size: 18px;">$</span>
+                        <input type="number" name="price" id="priceInput" step="0.01" min="0"
+                               value="{{ job.price if job else '' }}"
+                               style="padding-left: 35px !important;"
+                               placeholder="0.00" onchange="updateGST()">
+                    </div>
+                    <p class="helper-text">
+                        GST (10%): <span class="value-highlight">$<span id="gstAmount">0.00</span></span> | 
+                        TOTAL: <span class="value-highlight">$<span id="totalAmount">0.00</span></span>
+                    </p>
+                </div>
+                <div>
+                    <label>Deposit Secured</label>
+                    <div class="relative">
+                        <span style="position: absolute; left: 15px; top: 50px; color: var(--lcars-tangerine); font-size: 18px;">$</span>
+                        <input type="number" name="deposit" step="0.01" min="0"
+                               value="{{ job.deposit if job else '' }}"
+                               style="padding-left: 35px !important;"
+                               placeholder="0.00">
+                    </div>
+                </div>
+                <div style="grid-column: span 2;">
+                    <label>Supplemental Data (Notes)</label>
+                    <textarea name="notes" rows="2"
+                              placeholder="ADDITIONAL PARAMETERS...">{{ job.notes if job else '' }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        <!-- Materials Section -->
+        <div class="lcars-section">
+            <div class="flex items-center justify-between mb-4">
+                <h2>MATERIAL REQUISITION (COGS)</h2>
+                <button type="button" onclick="addMaterial()" class="lcars-btn-add">
+                    + INITIALIZE COMPONENT
+                </button>
+            </div>
+            <div id="materialsContainer" class="space-y-4">
+                {% if job and job.materials %}
+                    {% for material in job.materials %}
+                    <div class="material-row flex items-center gap-3" style="margin-bottom: 15px; display: flex;">
+                        <select name="material_category[]" style="width: 200px;">
+                            <option value="Labour" {% if material.category == 'Labour' %}selected{% endif %}>LABOUR</option>
+                            <option value="Materials" {% if material.category == 'Materials' %}selected{% endif %}>MATERIALS</option>
+                            <option value="Freight" {% if material.category == 'Freight' %}selected{% endif %}>FREIGHT</option>
+                            <option value="Subcontractor" {% if material.category == 'Subcontractor' %}selected{% endif %}>SUBCONTRACTOR</option>
+                            <option value="Other" {% if material.category == 'Other' %}selected{% endif %}>OTHER</option>
+                        </select>
+                        <input type="text" name="material_desc[]" value="{{ material.description }}"
+                               style="flex: 1; margin: 0 15px;"
+                               placeholder="COMPONENT DESCRIPTION...">
+                        <div class="relative" style="width: 150px;">
+                            <input type="number" name="material_cost[]" step="0.01" min="0" value="{{ material.cost }}"
+                                   placeholder="0.00" onchange="updateTotalCOGS()">
+                        </div>
+                        <button type="button" onclick="removeMaterial(this)" style="color: var(--lcars-red); background: none; border: 2px solid var(--lcars-red); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; margin-left: 10px;">
+                            ✖
+                        </button>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="material-row flex items-center gap-3" style="margin-bottom: 15px; display: flex;">
+                        <select name="material_category[]" style="width: 200px;">
+                            <option value="Labour">LABOUR</option>
+                            <option value="Materials" selected>MATERIALS</option>
+                            <option value="Freight">FREIGHT</option>
+                            <option value="Subcontractor">SUBCONTRACTOR</option>
+                            <option value="Other">OTHER</option>
+                        </select>
+                        <input type="text" name="material_desc[]"
+                               style="flex: 1; margin: 0 15px;"
+                               placeholder="COMPONENT DESCRIPTION...">
+                        <div class="relative" style="width: 150px;">
+                            <input type="number" name="material_cost[]" step="0.01" min="0"
+                                   placeholder="0.00" onchange="updateTotalCOGS()">
+                        </div>
+                        <button type="button" onclick="removeMaterial(this)" style="color: var(--lcars-red); background: none; border: 2px solid var(--lcars-red); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; margin-left: 10px;">
+                            ✖
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="mt-4 pt-4 border-t border-workshop-700 flex justify-between items-center" style="margin-top: 30px; border-top: 2px solid var(--lcars-rust); padding-top: 20px;">
+                <span style="color: var(--lcars-blue-light); font-size: 18px; font-weight: bold;">TOTAL COST:</span>
+                <span style="font-size: 28px; font-weight: 900; color: var(--lcars-red); font-family: 'Antonio';">$<span id="totalCOGS">{{ job.total_cogs|default(0, true)|round(2) if job else '0.00' }}</span></span>
+            </div>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex items-center justify-end space-x-4" style="text-align: right; margin-top: 40px; margin-bottom: 20px;">
+            <a href="{{ url_for('lcars_jobs') }}" class="lcars-btn-cancel">ABORT</a>
+            <button type="submit" class="lcars-btn-submit">
+                {% if job %}UPDATE RECORD{% else %}ENGAGE{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const customerNameInput = document.getElementById('customerName');
+const customerPhoneInput = document.getElementById('customerPhone');
+const customerEmailInput = document.getElementById('customerEmail');
+const customerAddressInput = document.getElementById('customerAddress');
+const customerDropdown = document.getElementById('customerDropdown');
+const phoneDropdown = document.getElementById('phoneDropdown');
+
+let searchTimeout;
+
+function fillCustomerFields(customer) {
+    customerNameInput.value = customer.name;
+    customerPhoneInput.value = customer.phone;
+    customerEmailInput.value = customer.email;
+    customerAddressInput.value = customer.address;
+    customerDropdown.classList.add('hidden');
+    phoneDropdown.classList.add('hidden');
+}
+
+function showDropdown(dropdown, customers) {
+    if (customers.length === 0) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+    
+    dropdown.innerHTML = customers.map(c => `
+        <div class="px-4 py-3 hover:bg-workshop-600 cursor-pointer border-b border-workshop-600 last:border-0" style="padding: 15px; border-bottom: 1px solid var(--lcars-blue); cursor: pointer; background: #111;" data-customer='${JSON.stringify(c)}'>
+            <div class="font-medium" style="color: var(--lcars-tangerine); font-size: 16px; font-weight: bold;">${c.name}</div>
+            <div class="text-sm" style="color: var(--lcars-blue-light); margin-top: 5px;">${c.phone || 'No phone'} ${c.email ? '• ' + c.email : ''}</div>
+        </div>
+    `).join('');
+    
+    dropdown.querySelectorAll('[data-customer]').forEach(el => {
+        el.addEventListener('click', () => {
+            fillCustomerFields(JSON.parse(el.dataset.customer));
+        });
+    });
+    
+    dropdown.classList.remove('hidden');
+}
+
+function searchCustomers(query, dropdown) {
+    clearTimeout(searchTimeout);
+    if (query.length < 1) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+    
+    searchTimeout = setTimeout(() => {
+        fetch(`/api/customers/search?q=${encodeURIComponent(query)}`)
+            .then(r => r.json())
+            .then(customers => showDropdown(dropdown, customers))
+            .catch(() => dropdown.classList.add('hidden'));
+    }, 200);
+}
+
+customerNameInput.addEventListener('input', (e) => searchCustomers(e.target.value, customerDropdown));
+customerPhoneInput.addEventListener('input', (e) => searchCustomers(e.target.value, phoneDropdown));
+
+document.addEventListener('click', (e) => {
+    if (!customerNameInput.contains(e.target) && !customerDropdown.contains(e.target)) {
+        customerDropdown.classList.add('hidden');
+    }
+    if (!customerPhoneInput.contains(e.target) && !phoneDropdown.contains(e.target)) {
+        phoneDropdown.classList.add('hidden');
+    }
+});
+
+// GST calculation
+function updateGST() {
+    const price = parseFloat(document.getElementById('priceInput').value) || 0;
+    const gst = price * 0.10;
+    const total = price + gst;
+    document.getElementById('gstAmount').textContent = gst.toFixed(2);
+    document.getElementById('totalAmount').textContent = total.toFixed(2);
+}
+
+// Materials
+function addMaterial() {
+    const container = document.getElementById('materialsContainer');
+    const row = document.createElement('div');
+    row.className = 'material-row flex items-center gap-3';
+    row.style.marginBottom = '15px';
+    row.style.display = 'flex';
+    row.innerHTML = `
+        <select name="material_category[]" style="width: 200px;">
+            <option value="Labour">LABOUR</option>
+            <option value="Materials" selected>MATERIALS</option>
+            <option value="Freight">FREIGHT</option>
+            <option value="Subcontractor">SUBCONTRACTOR</option>
+            <option value="Other">OTHER</option>
+        </select>
+        <input type="text" name="material_desc[]"
+               style="flex: 1; margin: 0 15px;"
+               placeholder="COMPONENT DESCRIPTION...">
+        <div class="relative" style="width: 150px;">
+            <input type="number" name="material_cost[]" step="0.01" min="0"
+                   placeholder="0.00" onchange="updateTotalCOGS()">
+        </div>
+        <button type="button" onclick="removeMaterial(this)" style="color: var(--lcars-red); background: none; border: 2px solid var(--lcars-red); border-radius: 50%; width: 40px; height: 40px; cursor: pointer; font-size: 20px; display: flex; align-items: center; justify-content: center; margin-left: 10px;">
+            ✖
+        </button>
+    `;
+    container.appendChild(row);
+}
+
+function removeMaterial(btn) {
+    const row = btn.closest('.material-row');
+    if (document.querySelectorAll('.material-row').length > 1) {
+        row.remove();
+    } else {
+        row.querySelectorAll('input').forEach(i => i.value = '');
+    }
+    updateTotalCOGS();
+}
+
+function updateTotalCOGS() {
+    let total = 0;
+    document.querySelectorAll('input[name="material_cost[]"]').forEach(input => {
+        total += parseFloat(input.value) || 0;
+    });
+    document.getElementById('totalCOGS').textContent = total.toFixed(2);
+}
+
+// Date display helper (Australian format)
+function updateDateDisplay() {
+    const dateInput = document.getElementById('jobDate');
+    const display = document.getElementById('dateDisplay');
+    if (dateInput.value) {
+        const date = new Date(dateInput.value + 'T00:00:00');
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        display.textContent = `${day}/${month}/${year}`;
+    }
+}
+
+// Initialize
+updateGST();
+updateTotalCOGS();
+updateDateDisplay();
+</script>
+{% endblock %}

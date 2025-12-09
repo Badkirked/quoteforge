@@ -54,6 +54,7 @@
                     </a>
                     <div class="hidden md:flex items-center space-x-1">
                         <a href="{{ url_for('index') }}" class="px-4 py-2 rounded-lg text-workshop-300 hover:text-white hover:bg-workshop-700 transition {% if request.endpoint == 'index' %}bg-workshop-700 text-white{% endif %}">Dashboard</a>
+                        <a href="{{ url_for('lcars_dashboard') }}" class="px-4 py-2 rounded-lg text-workshop-300 hover:text-white hover:bg-workshop-700 transition {% if request.endpoint == 'lcars_dashboard' %}bg-workshop-700 text-white{% endif %}">LCARS</a>
                         <a href="{{ url_for('jobs') }}" class="px-4 py-2 rounded-lg text-workshop-300 hover:text-white hover:bg-workshop-700 transition {% if request.endpoint in ['jobs', 'job_new', 'job_detail', 'job_edit'] %}bg-workshop-700 text-white{% endif %}">Jobs</a>
                         <a href="{{ url_for('customers') }}" class="px-4 py-2 rounded-lg text-workshop-300 hover:text-white hover:bg-workshop-700 transition {% if request.endpoint in ['customers', 'customer_detail'] %}bg-workshop-700 text-white{% endif %}">Customers</a>
                         <a href="{{ url_for('reports') }}" class="px-4 py-2 rounded-lg text-workshop-300 hover:text-white hover:bg-workshop-700 transition {% if request.endpoint == 'reports' %}bg-workshop-700 text-white{% endif %}">Reports</a>

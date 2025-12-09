@@ -505,6 +505,108 @@ def index():
                          status_counts=status_counts,
                          current_fy=current_fy)
 
+@app.route('/index/lcars')
+@login_required
+def lcars_dashboard():
+    """LCARS-style alternate dashboard"""
+    total_jobs = Job.query.count()
+    total_customers = Customer.query.count()
+    
+    # Current financial year
+    current_fy = get_financial_year(date.today())
+    fy_start, fy_end = get_fy_dates(current_fy)
+    
+    # Total revenue (ex GST)
+    total_revenue = db.session.query(db.func.sum(Job.price)).filter(
+        Job.status.in_(['completed', 'deposit_paid', 'in_progress'])
+    ).scalar() or 0
+    
+    # FY revenue
+    fy_revenue = db.session.query(db.func.sum(Job.price)).filter(
+        Job.status.in_(['completed', 'deposit_paid', 'in_progress']),
+        Job.date >= fy_start,
+        Job.date <= fy_end
+    ).scalar() or 0
+    
+    # Pending jobs count
+    pending_jobs = Job.query.filter(
+        Job.status.in_(['quoted', 'deposit_paid', 'in_progress'])
+    ).count()
+    
+    # Recent jobs
+    recent_jobs = Job.query.order_by(Job.date.desc()).limit(10).all()
+    
+    # Jobs by status
+    status_counts = {}
+    for status in STATUS_LABELS.keys():
+        status_counts[status] = Job.query.filter(Job.status == status).count()
+    
+    return render_template('lcars_dashboard.html', 
+                         total_jobs=total_jobs,
+                         total_customers=total_customers, 
+                         total_revenue=total_revenue,
+                         fy_revenue=fy_revenue,
+                         pending_jobs=pending_jobs,
+                         recent_jobs=recent_jobs,
+                         status_counts=status_counts,
+                         current_fy=current_fy)
+
+@app.route('/index/lcars/jobs')
+@login_required
+def lcars_jobs():
+    """LCARS Jobs List"""
+    status = request.args.get('status')
+    search = request.args.get('q', '')
+    query = Job.query.order_by(Job.date.desc())
+    
+    if status:
+        query = query.filter(Job.status == status)
+        
+    if search:
+        search = search.strip()
+        # Normalize: remove spaces and dashes for phone matching
+        search_normalized = search.replace(' ', '').replace('-', '')
+        
+        # Build multiple search patterns
+        query = query.join(Customer).filter(
+            db.or_(
+                Customer.name.ilike(f'%{search}%'),
+                Customer.phone.ilike(f'%{search}%'),
+                # Match normalized phone: remove spaces/dashes from both sides
+                db.text(f"REPLACE(REPLACE(customer.phone, ' ', ''), '-', '') LIKE '%{search_normalized}%'"),
+                Job.quote_number.ilike(f'%{search}%'),
+                Job.description.ilike(f'%{search}%')
+            )
+        )
+        
+    jobs = query.limit(50).all()
+    return render_template('lcars_jobs.html', jobs=jobs, search_query=search)
+
+@app.route('/index/lcars/job/new')
+@login_required
+def lcars_new_job():
+    """LCARS New Job Form"""
+    return render_template('lcars_job_form.html', job=None)
+
+@app.route('/index/lcars/customers')
+@login_required
+def lcars_customers():
+    """LCARS Customers List"""
+    customers = Customer.query.order_by(Customer.name).limit(50).all()
+    return render_template('lcars_customers.html', customers=customers)
+
+@app.route('/index/lcars/reports')
+@login_required
+def lcars_reports():
+    """LCARS Reports (Redirect for now)"""
+    return redirect(url_for('reports'))
+
+@app.route('/index/lcars/backup')
+@login_required
+def lcars_backup():
+    """LCARS Backup (Redirect for now)"""
+    return redirect(url_for('backup_page'))
+
 # ============== JOBS ROUTES ==============
 
 @app.route('/jobs')

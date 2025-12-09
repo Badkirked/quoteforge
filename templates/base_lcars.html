@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LCARS TERMINAL 47{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --lcars-orange: #f90;
+            --lcars-tangerine: #ff9933;
+            --lcars-peach: #ffcc99;
+            --lcars-purple: #cc99cc;
+            --lcars-blue: #9999ff;
+            --lcars-blue-light: #99ccff;
+            --lcars-red: #cc3333;
+            --lcars-rust: #cc6600;
+            --lcars-black: #000;
+            --gap: 5px;
+            --corner-radius: 20px;
+            --bar-width: 150px;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--lcars-black);
+            color: var(--lcars-orange);
+            font-family: 'Antonio', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* BOOT SEQUENCE */
+        #boot-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--lcars-black);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            letter-spacing: 2px;
+        }
+
+        .boot-text {
+            margin-bottom: 20px;
+            color: var(--lcars-peach);
+            text-transform: uppercase;
+            animation: blink 1s infinite;
+        }
+
+        .boot-bar {
+            width: 300px;
+            height: 20px;
+            border: 2px solid var(--lcars-blue);
+            padding: 2px;
+            border-radius: 10px;
+        }
+
+        .boot-progress {
+            width: 0%;
+            height: 100%;
+            background: var(--lcars-blue);
+            border-radius: 6px;
+            transition: width 0.1s linear;
+        }
+
+        /* MAIN LAYOUT */
+        #main-interface {
+            display: flex;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s;
+            padding: 10px;
+        }
+
+        /* Left Column (The Sweep) */
+        .left-col {
+            width: var(--bar-width);
+            display: flex;
+            flex-direction: column;
+            margin-right: var(--gap);
+            flex-shrink: 0;
+        }
+
+        .sweep-top {
+            height: 140px;
+            background: var(--lcars-peach);
+            border-top-left-radius: var(--corner-radius);
+            margin-bottom: var(--gap);
+            position: relative;
+        }
+        
+        .sweep-top::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            width: 60%;
+            height: 80px;
+            background: var(--lcars-black);
+            border-top-left-radius: 40px;
+        }
+
+        .sidebar-block {
+            background: var(--lcars-tangerine);
+            height: 40px;
+            margin-bottom: var(--gap);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+            font-weight: 700;
+            font-size: 18px;
+            text-transform: uppercase;
+            color: #000;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+            text-decoration: none;
+        }
+
+        .sidebar-block:hover {
+            background: var(--lcars-peach);
+            color: #000;
+        }
+
+        .sidebar-block.active {
+            background: #fff;
+        }
+
+        .sidebar-spacer {
+            flex-grow: 1;
+            background: var(--lcars-blue);
+            margin-bottom: var(--gap);
+            border-bottom-left-radius: var(--corner-radius);
+        }
+        
+        .block-1 { background: var(--lcars-orange); }
+        .block-2 { background: var(--lcars-rust); }
+        .block-3 { background: var(--lcars-peach); }
+        .block-4 { background: var(--lcars-blue-light); }
+        
+        /* Right Column (Content) */
+        .right-col {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .top-bar {
+            height: 60px;
+            background: var(--lcars-peach);
+            margin-bottom: var(--gap);
+            border-top-right-radius: var(--corner-radius);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            color: #000;
+            font-weight: 900;
+            font-size: 32px;
+            text-transform: uppercase;
+            line-height: 60px;
+            min-width: 0;
+        }
+
+        .top-bar span:first-child {
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .top-bar .stardate {
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-left: 20px;
+        }
+
+        /* Search bar moved below top bar */
+        .lcars-search-row {
+            display: flex;
+            justify-content: flex-end;
+            padding: 10px 20px;
+            background: transparent;
+        }
+
+        .lcars-search-container {
+            display: flex;
+            align-items: center;
+            background: var(--lcars-black);
+            border: 2px solid var(--lcars-orange);
+            padding: 4px;
+            border-radius: 25px;
+            width: 100%;
+            max-width: 500px;
+            height: 50px;
+        }
+
+        .lcars-search-input {
+            background: transparent;
+            border: none;
+            color: var(--lcars-tangerine);
+            font-family: 'Antonio', sans-serif;
+            font-size: 20px;
+            padding: 8px 20px;
+            width: 100%;
+            text-transform: uppercase;
+            outline: none;
+        }
+
+        .lcars-search-btn {
+            background: var(--lcars-tangerine);
+            color: #000;
+            border: none;
+            border-radius: 0 21px 21px 0;
+            height: 42px;
+            padding: 0 20px;
+            font-weight: bold;
+            cursor: pointer;
+            font-family: 'Antonio', sans-serif;
+            font-size: 16px;
+        }
+
+        .content-area {
+            flex-grow: 1;
+            background: var(--lcars-black);
+            border-top: 5px solid var(--lcars-black);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: auto auto 1fr;
+            gap: 20px;
+            padding: 20px 0 0 20px;
+            overflow-y: auto;
+        }
+
+        /* PANELS & WIDGETS */
+        .lcars-panel {
+            background: rgba(0,0,0,0.5);
+            border: 2px solid var(--lcars-blue);
+            border-radius: 10px;
+            padding: 15px;
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        
+        .lcars-panel.featured {
+            grid-column: span 1;
+            background: rgba(153, 153, 255, 0.1);
+            border-color: var(--lcars-blue-light);
+        }
+        
+        .lcars-panel.wide {
+            grid-column: span 2;
+        }
+        
+        .lcars-panel.full {
+            grid-column: span 4;
+        }
+
+        .lcars-panel h3 {
+            margin: 0 0 10px 0;
+            color: var(--lcars-peach);
+            text-transform: uppercase;
+            font-size: 16px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--lcars-orange);
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .big-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--lcars-tangerine);
+            text-align: right;
+        }
+        
+        .sub-text {
+            font-size: 14px;
+            text-align: right;
+            color: var(--lcars-blue-light);
+            text-transform: uppercase;
+        }
+
+        /* TABLES LCARS STYLE */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        
+        th {
+            text-align: left;
+            color: var(--lcars-rust);
+            text-transform: uppercase;
+            padding: 5px;
+            font-size: 14px;
+        }
+        
+        td {
+            padding: 8px 5px;
+            border-bottom: 1px solid #333;
+            color: var(--lcars-blue-light);
+            font-size: 16px;
+        }
+        
+        tr:hover td {
+            background: rgba(255, 153, 0, 0.1);
+            color: #fff;
+            cursor: pointer;
+        }
+
+        /* Animations */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes sweepIn {
+            from { width: 0; opacity: 0; }
+            to { width: var(--bar-width); opacity: 1; }
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Initial states */
+        .left-col { opacity: 0; }
+        .top-bar { width: 0; opacity: 0; white-space: nowrap; overflow: hidden; }
+        .lcars-panel { opacity: 0; transform: translateY(20px); }
+
+        /* Animation Classes applied by JS */
+        .anim-sidebar { animation: fadeIn 0.5s forwards; }
+        .anim-topbar { animation: sweepIn 0.8s ease-out forwards; }
+        .anim-panel { animation: slideUp 0.6s ease-out forwards; }
+        
+        /* Mobile adjustment */
+        @media (max-width: 1000px) {
+            .content-area { grid-template-columns: 1fr; }
+            .lcars-panel.wide, .lcars-panel.full { grid-column: span 1; }
+            .left-col { width: 80px; }
+            .sidebar-block { font-size: 12px; }
+            :root { --bar-width: 80px; }
+        }
+        
+        .corner-deco {
+            position: absolute;
+            top: 0; right: 0;
+            width: 30px; height: 30px;
+            border-top: 2px solid var(--lcars-orange);
+            border-right: 2px solid var(--lcars-orange);
+        }
+
+        /* Form Overrides for LCARS */
+        .lcars-form-wrapper input, .lcars-form-wrapper select, .lcars-form-wrapper textarea {
+            background-color: rgba(0,0,0,0.7) !important;
+            border: 1px solid var(--lcars-blue) !important;
+            color: var(--lcars-orange) !important;
+            border-radius: 5px !important;
+        }
+        .lcars-form-wrapper label {
+            color: var(--lcars-peach) !important;
+            text-transform: uppercase;
+        }
+        .lcars-form-wrapper .bg-workshop-800 {
+            background-color: transparent !important;
+            border: 1px solid var(--lcars-rust) !important;
+        }
+        .lcars-form-wrapper h2 {
+            color: var(--lcars-tangerine) !important;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- BOOT SEQUENCE -->
+    <div id="boot-screen">
+        <div class="boot-text" id="boot-text">System Initializing...</div>
+        <div class="boot-bar">
+            <div class="boot-progress" id="boot-progress"></div>
+        </div>
+        <div style="margin-top: 10px; font-size: 14px; color: var(--lcars-blue);">LCARS 47.9.1</div>
+        <div id="audio-prompt" style="margin-top: 30px; font-size: 16px; color: var(--lcars-tangerine); animation: blink 1s infinite;">
+            ► CLICK ANYWHERE TO ENABLE AUDIO ◄
+        </div>
+    </div>
+
+    <!-- MAIN INTERFACE -->
+    <div id="main-interface">
+        
+        <!-- LEFT COLUMN (SWEEP & MENU) -->
+        <div class="left-col">
+            <div class="sweep-top"></div> <!-- The Curve -->
+            
+            <a href="{{ url_for('index') }}" style="text-decoration: none;">
+                <div class="sidebar-block block-1">STD VIEW</div>
+            </a>
+            <a href="{{ url_for('lcars_dashboard') }}" style="text-decoration: none;">
+                <div class="sidebar-block block-2 {% if request.endpoint == 'lcars_dashboard' %}active{% endif %}">MONITOR</div>
+            </a>
+            <a href="{{ url_for('lcars_new_job') }}" style="text-decoration: none;">
+                <div class="sidebar-block block-3 {% if request.endpoint == 'lcars_new_job' %}active{% endif %}">NEW JOB</div>
+            </a>
+            <a href="{{ url_for('lcars_jobs') }}" style="text-decoration: none;">
+                <div class="sidebar-block block-4 {% if request.endpoint == 'lcars_jobs' %}active{% endif %}">JOB LOG</div>
+            </a>
+            <a href="{{ url_for('lcars_customers') }}" style="text-decoration: none;">
+                <div class="sidebar-block block-2 {% if request.endpoint == 'lcars_customers' %}active{% endif %}">CLIENTS</div>
+            </a>
+            <a href="{{ url_for('lcars_reports') }}" style="text-decoration: none;">
+                <div class="sidebar-block block-1 {% if request.endpoint == 'lcars_reports' %}active{% endif %}">DATA</div>
+            </a>
+            <a href="{{ url_for('lcars_backup') }}" style="text-decoration: none;">
+                <div class="sidebar-block block-3 {% if request.endpoint == 'lcars_backup' %}active{% endif %}">ARCHIVE</div>
+            </a>
+            
+            <!-- Filler -->
+            <div class="sidebar-block" style="background: var(--lcars-black); color: var(--lcars-rust); justify-content: center; font-size: 32px;">47</div>
+            
+            <div class="sidebar-spacer"></div>
+            
+            <div class="sidebar-block block-2" onclick="location.href='{{ url_for('logout') }}'">LOGOUT</div>
+        </div>
+
+        <!-- RIGHT COLUMN (CONTENT) -->
+        <div class="right-col">
+            <div class="top-bar">
+                <span>{% block header %}QUOTEFORGE SYSTEM CONTROL{% endblock %}</span>
+                <span class="stardate" id="stardate">SD 00000.0</span>
+            </div>
+            
+            <!-- LCARS SEARCH BAR -->
+            <div class="lcars-search-row">
+                <form action="{{ url_for('lcars_jobs') }}" method="GET" class="lcars-search-container">
+                    <input type="text" name="q" class="lcars-search-input" placeholder="SEARCH DATABASE..." value="{{ request.args.get('q', '') }}" autocomplete="off">
+                    <button type="submit" class="lcars-search-btn">ENGAGE</button>
+                </form>
+            </div>
+            
+            <div class="content-area">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ============ LCARS SOUND SYSTEM ============
+        let audioCtx = null;
+        let audioUnlocked = false;
+        
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            // Resume context if suspended (browser autoplay policy)
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            return audioCtx;
+        }
+        
+        // Unlock audio on first user interaction
+        function unlockAudio() {
+            if (!audioUnlocked) {
+                const ctx = initAudio();
+                // Play silent sound to unlock
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                gain.gain.value = 0;
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(0);
+                osc.stop(0.01);
+                audioUnlocked = true;
+                
+                // Hide audio prompt
+                const prompt = document.getElementById('audio-prompt');
+                if (prompt) prompt.style.display = 'none';
+                
+                // Play confirmation beep
+                setTimeout(() => beepSuccess(), 50);
+                
+                console.log('LCARS Audio System: ENABLED');
+            }
+        }
+        
+        // Add unlock listeners
+        document.addEventListener('click', unlockAudio, { once: true });
+        document.addEventListener('keydown', unlockAudio, { once: true });
+        document.addEventListener('touchstart', unlockAudio, { once: true });
+        
+        function playBeep(frequency = 800, duration = 0.1, type = 'square', volume = 0.3) {
+            try {
+                const ctx = initAudio();
+                const oscillator = ctx.createOscillator();
+                const gainNode = ctx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(ctx.destination);
+                
+                oscillator.frequency.value = frequency;
+                oscillator.type = type; // 'sine', 'square', 'sawtooth', 'triangle'
+                
+                gainNode.gain.setValueAtTime(volume, ctx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + duration);
+                
+                oscillator.start(ctx.currentTime);
+                oscillator.stop(ctx.currentTime + duration);
+            } catch(e) {
+                console.error('LCARS Audio Error:', e);
+            }
+        }
+        
+        // Different beep types
+        function beepBoot() { playBeep(600, 0.08, 'square', 0.4); }
+        function beepProgress() { playBeep(800, 0.05, 'square', 0.3); }
+        function beepSuccess() { 
+            playBeep(880, 0.1, 'square', 0.4);
+            setTimeout(() => playBeep(1100, 0.15, 'square', 0.5), 100);
+        }
+        function beepPanel() { playBeep(1200, 0.06, 'sine', 0.3); }
+        function beepClick() { playBeep(1400, 0.04, 'square', 0.4); }
+        function beepHover() { playBeep(1800, 0.02, 'sine', 0.2); }
+
+        // ============ BOOT SEQUENCE LOGIC ============
+        document.addEventListener('DOMContentLoaded', () => {
+            const bootScreen = document.getElementById('boot-screen');
+            const mainInterface = document.getElementById('main-interface');
+            const bootProgress = document.getElementById('boot-progress');
+            const bootText = document.getElementById('boot-text');
+            const texts = [
+                "MEMORY CHECK...",
+                "LOADING LCARS PROTOCOLS...",
+                "CONNECTING TO NEURAL NET...",
+                "ACCESS GRANTED"
+            ];
+
+            // If session storage says we already booted, skip
+            if (sessionStorage.getItem('booted')) {
+                bootScreen.style.display = 'none';
+                mainInterface.style.opacity = '1';
+                startSequence();
+                updateStardate();
+                addClickSounds();
+                return;
+            }
+
+            let progress = 0;
+            let textIndex = 0;
+            let lastBeepProgress = 0;
+
+            // Initial boot beep
+            setTimeout(() => beepBoot(), 100);
+
+            const interval = setInterval(() => {
+                progress += Math.random() * 5;
+                if (progress > 100) progress = 100;
+                bootProgress.style.width = progress + "%";
+
+                // Beep every ~15% progress
+                if (progress - lastBeepProgress > 15) {
+                    beepProgress();
+                    lastBeepProgress = progress;
+                }
+
+                if (progress > (textIndex + 1) * 25 && textIndex < texts.length) {
+                    bootText.innerText = texts[textIndex];
+                    beepBoot();
+                    textIndex++;
+                }
+
+                if (progress === 100) {
+                    clearInterval(interval);
+                    beepSuccess();
+                    setTimeout(finishBoot, 500);
+                }
+            }, 50);
+
+            function finishBoot() {
+                bootScreen.style.opacity = '0';
+                setTimeout(() => {
+                    bootScreen.style.display = 'none';
+                    mainInterface.style.opacity = '1';
+                    sessionStorage.setItem('booted', 'true');
+                    startSequence();
+                    addClickSounds();
+                }, 500);
+            }
+
+            function startSequence() {
+                const sidebar = document.querySelector('.left-col');
+                if(sidebar) {
+                    sidebar.classList.add('anim-sidebar');
+                    beepPanel();
+                }
+                
+                setTimeout(() => {
+                    const topbar = document.querySelector('.top-bar');
+                    if(topbar) {
+                        topbar.classList.add('anim-topbar');
+                        beepPanel();
+                    }
+                }, 400);
+
+                const panels = document.querySelectorAll('.lcars-panel');
+                let delay = 800;
+                panels.forEach((el) => {
+                    setTimeout(() => {
+                        el.classList.add('anim-panel');
+                        beepPanel();
+                    }, delay);
+                    delay += 200;
+                });
+            }
+
+            function updateStardate() {
+                const now = new Date();
+                const start = new Date(now.getFullYear(), 0, 0);
+                const diff = now - start;
+                const oneDay = 1000 * 60 * 60 * 24;
+                const day = Math.floor(diff / oneDay);
+                const stardate = (40000 + (now.getFullYear() - 2323) * 1000 + (day * 1000 / 365)).toFixed(1);
+                const el = document.getElementById('stardate');
+                if(el) el.innerText = "SD " + stardate;
+            }
+            updateStardate();
+        });
+
+        // Add click sounds to interactive elements
+        function addClickSounds() {
+            // Sidebar blocks
+            document.querySelectorAll('.sidebar-block').forEach(el => {
+                el.addEventListener('click', () => beepClick());
+                el.addEventListener('mouseenter', () => beepHover());
+            });
+            
+            // Panels and tiles
+            document.querySelectorAll('.lcars-panel, .lcars-panel a, table tr').forEach(el => {
+                el.addEventListener('click', () => beepClick());
+            });
+            
+            // Buttons
+            document.querySelectorAll('button, .lcars-search-btn').forEach(el => {
+                el.addEventListener('click', () => beepClick());
+            });
+            
+            // Status items
+            document.querySelectorAll('[style*="border-left"]').forEach(el => {
+                el.addEventListener('click', () => beepClick());
+            });
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

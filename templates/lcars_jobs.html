@@ -1,0 +1,41 @@
+{% extends "base_lcars.html" %}
+
+{% block header %}JOB MANIFEST{% endblock %}
+
+{% block content %}
+    <div class="lcars-panel full">
+        <h3>ACTIVE JOB LISTING</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>QUOTE #</th>
+                    <th>CUSTOMER</th>
+                    <th>DATE</th>
+                    <th>STATUS</th>
+                    <th>PRICE</th>
+                    <th>ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr onclick="window.location='{{ url_for('job_detail', job_id=job.id) }}'">
+                    <td style="color: var(--lcars-orange); font-weight: bold;">{{ job.quote_number }}</td>
+                    <td>{{ job.customer.name }}</td>
+                    <td>{{ job.date|ausdate }}</td>
+                    <td>
+                        <span style="color: {% if job.status == 'completed' %}#0f0{% elif job.status == 'in_progress' %}#f00{% else %}#fc0{% endif %};">
+                            {{ STATUS_LABELS[job.status] }}
+                        </span>
+                    </td>
+                    <td style="text-align: right;">${{ "{:,.2f}".format(job.price) }}</td>
+                    <td style="text-align: center;">ACCESS</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center;">NO RECORDS FOUND</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base_lcars.html" %}
+
+{% block header %}SYSTEM MONITOR{% endblock %}
+
+{% block content %}
+    <!-- NEW JOB TILE -->
+    <a href="{{ url_for('lcars_new_job') }}" style="text-decoration: none;">
+        <div class="lcars-panel featured" style="border-color: var(--lcars-tangerine); background: rgba(255, 153, 0, 0.1);">
+            <div class="corner-deco"></div>
+            <h3>INITIATE</h3>
+            <div class="big-number" style="font-size: 32px; color: var(--lcars-tangerine);">NEW JOB</div>
+            <div class="sub-text">CREATE RECORD</div>
+        </div>
+    </a>
+
+    <!-- REVENUE TILE -->
+    <div class="lcars-panel featured">
+        <div class="corner-deco"></div>
+        <h3>Total Revenue <span style="font-size: 10px;">EX GST</span></h3>
+        <div class="big-number">${{ "{:,.0f}".format(total_revenue) }}</div>
+        <div class="sub-text">GROSS: ${{ "{:,.0f}".format(total_revenue * 1.1) }}</div>
+    </div>
+
+    <!-- PENDING TILE -->
+    <div class="lcars-panel featured">
+        <div class="corner-deco"></div>
+        <h3>PENDING JOBS</h3>
+        <div class="big-number" style="color: var(--lcars-red);">{{ pending_jobs }}</div>
+        <div class="sub-text">ACTION REQUIRED</div>
+    </div>
+
+    <!-- CUSTOMERS TILE -->
+    <div class="lcars-panel featured">
+        <div class="corner-deco"></div>
+        <h3>DATABASE</h3>
+        <div class="big-number" style="color: var(--lcars-peach);">{{ total_customers }}</div>
+        <div class="sub-text">CLIENT RECORDS</div>
+    </div>
+
+    <!-- JOB STATUS GRID -->
+    <div class="lcars-panel wide" style="grid-row: span 2;">
+        <h3>SYSTEM STATUS OVERVIEW</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 20px;">
+            {% for status, label in STATUS_LABELS.items() %}
+            <a href="{{ url_for('lcars_jobs', status=status) }}" style="text-decoration: none;">
+                <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid {% if status == 'completed' %}#0f0{% elif status == 'in_progress' %}#f00{% else %}#fc0{% endif %};">
+                    <span style="color: var(--lcars-peach); font-weight: bold; text-transform: uppercase;">{{ label }}</span>
+                    <span style="font-size: 24px; color: #fff;">{{ status_counts.get(status, 0) }}</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- RECENT ACTIVITY -->
+    <div class="lcars-panel wide" style="grid-row: span 2;">
+        <h3>RECENT COMMS TRAFFIC</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>REF</th>
+                    <th>ENTITY</th>
+                    <th>DATE</th>
+                    <th>VALUE</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in recent_jobs[:6] %}
+                <tr onclick="window.location='{{ url_for('job_detail', job_id=job.id) }}'">
+                    <td style="color: var(--lcars-orange);">{{ job.quote_number }}</td>
+                    <td>{{ job.customer.name[:15] }}</td>
+                    <td>{{ job.date|ausdate }}</td>
+                    <td style="text-align: right;">${{ "{:,.0f}".format(job.price) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}
